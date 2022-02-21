@@ -1,0 +1,25 @@
+### table to summarize topics from stm results and their prevalence in the corpus ####
+prevalence_table = function(model, n=NULL, labeltype = c("prob", "frex", "lift", "score"), frexw = .5){
+  topics = 1:model$settings$dim$K
+  topic.names = sprintf("Topic %i", topics)
+  prevalence = colMeans(model$theta[, topics]) #calculate the prevalence of each topic in the corpus
+  labels = apply(as.data.frame(as.list(labelTopics(model, topics = topics, 
+                                                   n = n, frexweight = frexw))[labeltype]), 1, paste, 
+                 collapse = ', ')
+  
+  colnames = c("Topic", 'Rank', 'Prevalence', 'Labels')
+  prevalen = data.frame(matrix(ncol = length(colnames), nrow = length(topic.names)))
+  colnames(prevalen) = colnames
+  prevalen$Topic = topic.names
+  
+  match_p = function(x) {match(x, order(prevalence, decreasing = TRUE))}
+  prevalen$Rank = apply(as.data.frame(topics), 1, match_p)
+  prevalen$Prevalence = round(prevalence, 3)
+  prevalen$Labels = labels
+  prevalen
+}
+# model is the stm model selected for presentation, 
+# n is the number of words to be presented that are associated with each topic
+# labeltype is the way in which words are associated with the topic 
+# frexw is used when "frex" is specified in labeltype, the weight that frex uses
+# see more details in plot.STM
